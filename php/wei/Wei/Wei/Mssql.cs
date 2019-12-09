@@ -29,7 +29,7 @@ namespace Wei
         
         public String Version()
         {
-            return "20191206.01";
+            return "20191209.1.0";
         }
         /// <summary>
         /// 打开数据库连接
@@ -109,7 +109,7 @@ namespace Wei
 
         private string DataTableJson(DataTable dt)
         {
-                StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder(); 
             try
             {
                 sb.Append("[");
@@ -128,7 +128,7 @@ namespace Wei
                     sb.Append("},");
                 }
                 sb.Remove(sb.Length - 1, 1);
-                sb.Append("]");
+                sb.Append("]"); 
             }
             catch (ArgumentOutOfRangeException e) { SetError(e.Message); }
             catch (ArgumentException e) { SetError(e.Message); }
