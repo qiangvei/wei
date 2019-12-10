@@ -121,7 +121,7 @@ namespace Wei
                         sb.Append("\"");
                         sb.Append(dt.Columns[j].ColumnName);
                         sb.Append("\":\"");
-                        sb.Append(dt.Rows[i][j].ToString());
+                        sb.Append(Convert.ToBase64String(Encoding.Default.GetBytes(dt.Rows[i][j].ToString())));
                         sb.Append("\",");
                     }
                     sb.Remove(sb.Length - 1, 1);
