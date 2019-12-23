@@ -1,4 +1,4 @@
-﻿<html style="background: #E81123;">
+﻿<html style="background: darkred;">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
@@ -20,6 +20,30 @@
 
 </head>
 <body style="overflow: hidden;">
+<span style="color:#2e6da4; right: 0px;bottom: 0px; position: absolute; cursor: pointer;" onclick="settingForm()">设置</span>
+<div class="setting" style="display: none;">
+	<h2 style="text-align: center;">转盘设置</h2>
+	<div style="text-align: left;font-weight: bolder;">
+		转盘号从 1 到 <input id="setTotalTurnNum" type="number" placeholder="数字" style="width: 70px;">
+		<button onclick="setTotalTurnNum()">确定</button>
+		<br />
+		<span>抽奖前确定好抽奖人数,然后从1开始编号并发给抽奖人。此处仅对编号做抽奖</span>
+	</div>
+	<hr style="color: #99000D;"/>
+	<h2 style="text-align: center;">奖项设置</h2>
+	<div style="text-align: left;">
+		奖项数：<input id="totalItem" type="text" placeholder="输入数字" style="width: 70px;">
+		<button onclick="loadItems()">确定</button>
+	</div>
+	<div class="settingBox" style="text-align: center;"></div>
+	<div class="settingBoxBtn" style="text-align: center; margin-top: 10px; display: none;">
+		<input type="button" value="保存设置" />
+	</div>
+	<div class="clearResultBtn" style="text-align: center; margin-top: 10px; position: absolute; bottom: 10px;">
+		<input type="button" value="清除旧的中奖数据" />
+	</div>
+</div>
+
 <div class="TurntablePage">
 	<div class="TurntableBox" style="display: none; overflow: hidden;">
 		<div class="turnplate">
@@ -32,8 +56,83 @@
 <div id="optionBox" style="display: none;"></div>
 
 <div class="showResult"></div>
-
+<div class="currWinner">-1</div>
 <script type="text/javascript">
+var vei = {
+		totalTurn:2,
+		total:0,
+		items:[],
+		result:[]
+	};
+function iniResult() {
+	var tmptotal = vei.total||0;
+	var tmpItems = vei.items||[];
+	var tmpResult = vei.result||[];
+	if(parseInt(tmptotal)<=0){ return ;}
+	if(tmpItems.length<=0){return;}
+	//if(tmpResult.length<=0){return;}
+
+	for(var i=1;i<=tmptotal;i++){
+		var tmpN = tmpItems[i]||'';
+		var title = '' , num = '';
+		if($.trim(tmpN)!=''){
+			title = tmpN.title;
+			num = tmpN.value;
+			$('.showResult').append('<div style="padding-bottom: 20px; overflow: hidden;width: auto;"><div style="font-size: 24px;font-weight: bolder;"><input name="nowRun" type="radio" value="'+i+'">'+title+'<span style="font-weight: normal;font-size: 12px;">('+num+'名)</span></div><div id="RS_'+i+'" style="border: 1px solid #99000D; min-height: 50px;width: 100%; height: auto;"></div></div>');
+		}
+
+		var tmpRs = tmpResult[i]||'';
+		if($.trim(tmpRs)!=''){
+			for (var j=0;j<tmpRs.length;j++){
+				$('#RS_'+i).append('<span id="num_'+tmpRs[j]+'" style="width:70px;color: orange; float:left; margin-left: 5px; border-bottom:1px solid #FFFF00; text-align: center;">'+tmpRs[j]+'</span>');
+			}
+		}
+	}
+}
+function settingForm() {
+	$('.setting').toggle("slow");
+}
+function setTotalTurnNum() {
+	var total = $('#setTotalTurnNum').val();
+	vei.totalTurn = total;
+	saveData(vei);
+	window.location.reload();
+}
+function loadItems() {
+	$('.settingBox').html('');
+	$('.settingBoxBtn').css('display','none');
+	var totalNum = parseInt($('#totalItem').val())|0;
+	if(totalNum==0){ return false;}
+	vei.total = totalNum;
+	saveData(vei);
+	for(var i=1;i<=totalNum;i++){
+		var tmpN = vei.items[i]||'';
+		var title = '' , num = '';
+		if($.trim(tmpN)!=''){
+			title = tmpN.title;
+			num = tmpN.value;
+		}
+		$('.settingBox').append('<div style="text-align: center; margin-top: 5px;"><input id="N_'+i+'" type="text" style="width: 200px;" placeholder="奖项名称"value="'+title+'" /><input id="V_'+i+'" type="number" style="width: 70px;" placeholder="名额" value="'+num+'" /></div>');
+	}
+	$('.settingBoxBtn').css('display','block');
+}
+$('.settingBoxBtn').click(function () {
+	$('.showResult').html('');
+	var tmpTotal =vei.total;
+	for(var i=1;i<=tmpTotal;i++){
+		var itemName = $('#N_'+i).val();
+		var itemValue = $('#V_'+i).val();
+		vei.items[i] = {title:itemName,value:itemValue};
+		$('.showResult').append('<div style="padding-bottom: 20px; overflow: hidden;width: auto;"><div style="font-size: 24px;font-weight: bolder;"><input name="nowRun" type="radio" value="'+i+'">'+itemName+'<span style="font-weight: normal;font-size: 12px;">('+itemValue+'名)</span></div><div id="RS_'+i+'" style="border: 1px solid #99000D; min-height: 50px;width: 100%; height: auto;"></div></div>');
+	}
+	saveData(vei);
+});
+$('.clearResultBtn').click(function () {
+	vei.result = [];
+	saveData(vei);
+	window.location.reload();
+});
+
 //页面所有元素加载完毕后执行drawRouletteWheel()方法对转盘进行渲染
 var turnplate={
 		restaraunts:[],				//大转盘奖品名称
@@ -67,6 +166,17 @@ window.onload=function(){
 };
 
 $('.pointer').click(function (){
+	var nowRun = $("input[name='nowRun']:checked").val();
+	if(!nowRun){ alert('请选抽取奖项'); return;}
+	var limitNum = vei.items[nowRun]||0;
+	var haveChild = $('#RS_'+nowRun).children().length||0;
+	//alert(nowRun+' | '+limitNum.value+' | '+haveChild);
+	if(parseInt(limitNum.value)<=parseInt(haveChild)){
+		alert('该奖项已抽满名额！');
+		return;
+	}
+
+	beforeRun();//开始抽奖之前的操作
 	if(turnplate.bRotate)return;
 	turnplate.bRotate = !turnplate.bRotate;
 	//获取随机数(奖品个数范围内)
@@ -93,17 +203,11 @@ var rotateFn = function (item, txt){
 	$('#wheelcanvas').rotate({
 		angle:0,
 		animateTo:angles+1800,
-		duration:8000,
+		duration:1000,//8000, //轮动时间
 		callback:function (){
 			console.log('结束转盘回调',txt);
 			turnplate.currWinner = txt;
-			$('.showResult').text($('.showResult').text()+txt+'  ');
-			$(".showResult").animate({
-				left:'50%',
-				opacity:'0.5',
-				height:'150px',
-				width:'150px'
-			});
+			aterRun(txt);
 			turnplate.bRotate = !turnplate.bRotate;
 		}
 	});
@@ -117,9 +221,9 @@ if (canvas.getContext) {
   //在给定矩形内清空一个矩形
   ctx.clearRect(0,0,422,422);
   //strokeStyle 属性设置或返回用于笔触的颜色、渐变或模式  
-  ctx.strokeStyle = "#FFBE04";
+  ctx.strokeStyle = "#1E9FFF";
   //font 属性设置或返回画布上文本内容的当前字体属性
-  ctx.font = '10px Microsoft YaHei';
+  ctx.font = '12px Microsoft YaHei';
   for(var i = 0; i < turnplate.restaraunts.length; i++) {       
 	  var angle = turnplate.startAngle + i * arc;
 	  ctx.fillStyle = turnplate.colors[i];
@@ -132,7 +236,7 @@ if (canvas.getContext) {
 	  //锁画布(为了保存之前的画布状态)
 	  ctx.save();   
 	  //----绘制奖品开始----
-	  ctx.fillStyle = "#1E9FFF";//"#E5302F";
+	  ctx.fillStyle = "#FF5722";//"#E5302F";
 	  var text = turnplate.restaraunts[i];
 	  var line_height = 17;
 	  //translate方法重新映射画布上的 (0,0) 位置
@@ -189,16 +293,49 @@ var setOptionsInTable = function(){
 		$('.TurntableBox').show();
 	}
 };
+//转盘开始转动之前
+function beforeRun(){
+	//清空当前显示的数字
+	$('.currWinner').text('');
+	//删除已中奖数字
+	delOptions();
+	//重新绘制转盘
+	setOptionsInTable();
+}
+//转盘转动之后
+function aterRun(txt){
+	$('.currWinner').text(txt);
+	$('.currWinner').css('font-size','12px');
+	$('.currWinner').animate({
+		fontSize:'36px'
+	},'slow',addWinnerToResult);
+}
+function addWinnerToResult(){
+	var nowRun = $("input[name='nowRun']:checked").val();
+	$('#RS_'+nowRun).append('<span id="num_'+turnplate.currWinner+'" style="width:70px;color: orange; float:left; margin-left: 5px; border-bottom:1px solid #FFFF00; text-align: center;">'+turnplate.currWinner+'</span>');
+	var tmpRs = vei.result[nowRun]||[];
+	tmpRs.push(turnplate.currWinner);
+	vei.result[nowRun] = tmpRs;
+	saveData(vei);
+}
 
 $(document).ready(function () {
-	console.log(readData());
+	var tmpvei = readData();
+	if(tmpvei){
+		vei = tmpvei;
+	}
+	iniResult();
+
 	var WH = $(document).height();
+	var WW = $(document).width();
 	var setH = WH - 20;
 	$('.TurntablePage .TurntableBox .turnplate').height(setH);
 	$('.TurntablePage .TurntableBox .turnplate').width(setH);
 	$('.TurntablePage .TurntableBox .turnplate img').css({'top':WH/2 - 260});
+
 	//添加选项
-	for(var i=1;i<=80;i++){
+	var tmpTTT = vei.totalTurn||2;
+	for(var i=1;i<=tmpTTT;i++){
 		addOptions(i);
 	}
 	//显示转盘
@@ -211,7 +348,7 @@ var saveData = function (val) {
 		alert("浏览器不支持存储");
 	}else {
 		var storage=window.localStorage;
-		storage.setItem('kulechoujiangByWei',val);
+		storage.setItem('kulechoujiangByWei',JSON.stringify(val));
 		data = true
 	}
 	return data;
@@ -224,6 +361,7 @@ var readData = function () {
 	}else {
 		var storage=window.localStorage;
 		data = storage.getItem('kulechoujiangByWei');
+		data = JSON.parse(data);
 	}
 	return data;
 }
