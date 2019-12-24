@@ -7,7 +7,7 @@
 <meta content="telephone=no,email=no" name="format-detection" />
 <meta content="maximum-dpr=2" name="flexible" />
 <meta content="modeName=750-12" name="grid" />
-<title>酷乐抽奖</title>
+<title>酷乐抽奖 -支持火狐谷歌浏览器</title>
 
 <!--<script src="build/flexible_css.debug.js"></script>-->
 <script src="build/flexible.debug.js"></script>
@@ -20,14 +20,14 @@
 
 </head>
 <body style="overflow: hidden;">
-<span style="color:#2e6da4; right: 0px;bottom: 0px; position: absolute; cursor: pointer;" onclick="settingForm()">设置</span>
-<div class="setting" style="display: none;">
+<span style="color:yellow; right: 0px;bottom: 0px; position: absolute; cursor: pointer;" onclick="settingForm()">设置</span>
+<div class="setting" style="display: none; padding-left: 7px;">
 	<h2 style="text-align: center;">转盘设置</h2>
 	<div style="text-align: left;font-weight: bolder;">
 		转盘号从 1 到 <input id="setTotalTurnNum" type="number" placeholder="数字" style="width: 70px;">
 		<button onclick="setTotalTurnNum()">确定</button>
 		<br />
-		<span>抽奖前确定好抽奖人数,然后从1开始编号并发给抽奖人。此处仅对编号做抽奖</span>
+		<span style="font-weight: normal;">为了保证抽奖的公平公证，请在抽奖前制作好转盘上的所有号码供参与人抽取，然后再进行转盘抽取中奖号</span>
 	</div>
 	<hr style="color: #99000D;"/>
 	<h2 style="text-align: center;">奖项设置</h2>
@@ -39,8 +39,11 @@
 	<div class="settingBoxBtn" style="text-align: center; margin-top: 10px; display: none;">
 		<input type="button" value="保存设置" />
 	</div>
-	<div class="clearResultBtn" style="text-align: center; margin-top: 10px; position: absolute; bottom: 10px;">
+	<div class="clearResultBtn" style="text-align: center; margin-top: 10px; position: absolute; bottom: 10px; width: auto;">
 		<input type="button" value="清除旧的中奖数据" />
+	</div>
+	<div>
+		<input type="button" value="隐藏设置" onclick="settingForm()" style="text-align: center; margin-top: 10px; position: absolute; bottom: 10px; width: auto; right: 5px;">
 	</div>
 </div>
 
@@ -56,13 +59,15 @@
 <div id="optionBox" style="display: none;"></div>
 
 <div class="showResult"></div>
-<div class="currWinner">-1</div>
+<span class="currWinner"></span>
 <script type="text/javascript">
 var vei = {
 		totalTurn:2,
 		total:0,
 		items:[],
-		result:[]
+		result:[],
+		allRsNum:[],
+		winnerSize:36
 	};
 function iniResult() {
 	var tmptotal = vei.total||0;
@@ -123,14 +128,23 @@ $('.settingBoxBtn').click(function () {
 		var itemName = $('#N_'+i).val();
 		var itemValue = $('#V_'+i).val();
 		vei.items[i] = {title:itemName,value:itemValue};
-		$('.showResult').append('<div style="padding-bottom: 20px; overflow: hidden;width: auto;"><div style="font-size: 24px;font-weight: bolder;"><input name="nowRun" type="radio" value="'+i+'">'+itemName+'<span style="font-weight: normal;font-size: 12px;">('+itemValue+'名)</span></div><div id="RS_'+i+'" style="border: 1px solid #99000D; min-height: 50px;width: 100%; height: auto;"></div></div>');
+		// $('.showResult').append('<div style="padding-bottom: 20px; overflow: hidden;width: auto;"><div style="font-size: 24px;font-weight: bolder;"><input name="nowRun" type="radio" value="'+i+'">'+itemName+'<span style="font-weight: normal;font-size: 12px;">('+itemValue+'名)</span></div><div id="RS_'+i+'" style="border: 1px solid #99000D; min-height: 50px;width: 100%; height: auto;"></div></div>');
 	}
 	saveData(vei);
+	iniResult();
 });
 $('.clearResultBtn').click(function () {
-	vei.result = [];
-	saveData(vei);
-	window.location.reload();
+	if(confirm('注意：若已开始抽奖，并且未结束，请不要清除，否则已经抽取的号码会全部清除，并且号码重新回到转盘上。是否真的要清除？')){
+		vei.result = [];
+		vei.allRsNum = [];
+		saveData(vei);
+		window.location.reload();
+	}
+});
+$('.currWinner').click(function () {
+	$('.currWinner').animate({
+		fontSize:'64px'
+	},'slow');
 });
 
 //页面所有元素加载完毕后执行drawRouletteWheel()方法对转盘进行渲染
@@ -147,7 +161,7 @@ var turnplate={
 //动态添加大转盘的奖品与奖品区域背景颜色
 turnplate.restaraunts = ["衣服", "首饰", "化妆品",'包包','鞋子','大餐','旅游']
 //colorsArr = ["#FFF4D6", "#FFFFFF",'#fff0c8'];
-colorsArr = ["#FFF4D6", "#FFFFFF",'#fff0c8'];
+colorsArr = ["#FFF4D6", "#FFFFFF",'#FFF4D6'];//["#FFF4D6", "#FFFFFF",'#fff0c8'];
 returnColor();
 function returnColor(){
 	var a=turnplate.restaraunts.length;
@@ -176,8 +190,9 @@ $('.pointer').click(function (){
 		return;
 	}
 
+	if(turnplate.bRotate)return;//判断当前是否还在转动中
+
 	beforeRun();//开始抽奖之前的操作
-	if(turnplate.bRotate)return;
 	turnplate.bRotate = !turnplate.bRotate;
 	//获取随机数(奖品个数范围内)
 	var item = rnd(1,turnplate.restaraunts.length);
@@ -208,7 +223,7 @@ var rotateFn = function (item, txt){
 			console.log('结束转盘回调',txt);
 			turnplate.currWinner = txt;
 			aterRun(txt);
-			turnplate.bRotate = !turnplate.bRotate;
+			//turnplate.bRotate = !turnplate.bRotate; //动画播放之后再释放，否则会多抽号码
 		}
 	});
 };
@@ -307,16 +322,20 @@ function aterRun(txt){
 	$('.currWinner').text(txt);
 	$('.currWinner').css('font-size','12px');
 	$('.currWinner').animate({
-		fontSize:'36px'
+		fontSize:vei.winnerSize+'px'
 	},'slow',addWinnerToResult);
 }
 function addWinnerToResult(){
 	var nowRun = $("input[name='nowRun']:checked").val();
 	$('#RS_'+nowRun).append('<span id="num_'+turnplate.currWinner+'" style="width:70px;color: orange; float:left; margin-left: 5px; border-bottom:1px solid #FFFF00; text-align: center;">'+turnplate.currWinner+'</span>');
 	var tmpRs = vei.result[nowRun]||[];
+	var tmpAll = vei.allRsNum || [];
 	tmpRs.push(turnplate.currWinner);
+	tmpAll.push(turnplate.currWinner);
 	vei.result[nowRun] = tmpRs;
+	vei.allRsNum = tmpAll;
 	saveData(vei);
+	turnplate.bRotate = !turnplate.bRotate;
 }
 
 $(document).ready(function () {
@@ -332,14 +351,27 @@ $(document).ready(function () {
 	$('.TurntablePage .TurntableBox .turnplate').height(setH);
 	$('.TurntablePage .TurntableBox .turnplate').width(setH);
 	$('.TurntablePage .TurntableBox .turnplate img').css({'top':WH/2 - 260});
+	$('.showResult').css('width',WW-WH-55);
+	$('.TurntablePage .TurntableBox .turnplate').css('left',WW-WH);
+	vei.winnerSize = WH*0.6;
+	$('.currWinner').css('left',(WW/2 - vei.winnerSize/2)+'px');
 
 	//添加选项
 	var tmpTTT = vei.totalTurn||2;
+	var hadRs = vei.allRsNum || [];
 	for(var i=1;i<=tmpTTT;i++){
+		if(hadRs.includes(i) || hadRs.includes(i+'')){ continue;}
 		addOptions(i);
 	}
 	//显示转盘
 	setOptionsInTable();
+
+	var brs = myBrowser();
+	if(brs=='FF' || brs=='Chrome'){
+	}else{
+		alert('请使用火狐浏览器或者谷歌浏览器打开');
+		$('body').html('');
+	}
 });
 
 var saveData = function (val) {
@@ -364,6 +396,25 @@ var readData = function () {
 		data = JSON.parse(data);
 	}
 	return data;
+}
+function myBrowser(){
+	var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+	var isOpera = userAgent.indexOf("Opera") > -1;
+	if (isOpera) {
+		return "Opera"
+	}; //判断是否Opera浏览器
+	if (userAgent.indexOf("Firefox") > -1) {
+		return "FF";
+	} //判断是否Firefox浏览器
+	if (userAgent.indexOf("Chrome") > -1){
+		return "Chrome";
+	}
+	if (userAgent.indexOf("Safari") > -1) {
+		return "Safari";
+	} //判断是否Safari浏览器
+	if (userAgent.indexOf("compatible") > -1 && userAgent.indexOf("MSIE") > -1 && !isOpera) {
+		return "IE";
+	}; //判断是否IE浏览器
 }
 </script>
 </body>

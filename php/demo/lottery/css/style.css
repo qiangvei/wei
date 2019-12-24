@@ -50,8 +50,9 @@ a:link {
 .TurntablePage .TurntableBox .turnplate {
   width: 18rem;
   height: 18rem;
-  margin: 0 auto;
+  /*margin: 0 auto;*/
   position: relative;
+  left: 45%;
 }
 .TurntablePage .TurntableBox .turnplate canvas {
   width: 100%;
@@ -77,7 +78,7 @@ a:link {
 }
 
 .showResult{
-  width: 400px;
+  width: 40%;
   left: 0;
   top: 0;
   height: 100%;
@@ -91,13 +92,18 @@ a:link {
   overflow: auto;
 }
 .currWinner{
-  width: 50px;
+  width: auto;
   margin: auto auto;
-  color: orange;
+  color:gold;
   top: 0;
   position: absolute;
-  font-size: 36px;
+  font-size: 128px;
   text-align: center;
-  z-index: -5;
-  left: 49%;
+  z-index: 9999;
+  cursor: pointer;
+  -moz-user-select: none; /*火狐*/
+  -webkit-user-select: none; /*webkit浏览器*/
+  -ms-user-select: none; /*IE10*/
+  -khtml-user-select: none; /*早期浏览器*/
+  user-select: none;
 }
