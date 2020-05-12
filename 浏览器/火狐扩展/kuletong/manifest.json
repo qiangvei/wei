@@ -1,0 +1,19 @@
+{
+    "manifest_version":2 ,
+    "name":"酷乐通" ,
+    "version":"1.0.0",
+    "description":"酷乐OA系统工具",
+    "icons":{
+        "48":"icons/kule.bmp",
+        "96":"icons/kule.bmp"
+    },
+    "permissions": [
+        "contextMenus"
+    ],
+    "content_scripts":[
+        {
+            "matches":["<all_urls>"],
+            "js":["jquery-3.5.1.min.js","bg.js"]
+        }
+    ]
+}
