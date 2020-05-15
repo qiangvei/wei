@@ -11,7 +11,12 @@
     },
     "permissions": [
         "contextMenus",
-        "storage"
+        "storage",
+        "notifications",
+        "alarms",
+        "tabs",
+        "activeTab",
+        "<all_urls>"
     ],
     "browser_action": {
         "default_title": "提示：这是酷乐OA系统工具", 

@@ -25,6 +25,35 @@ function toolUisetting(){
         chrome.browserAction.setBadgeBackgroundColor({color:"#CCCCCC"});//文字背景
       }
 }
+//notifycation消息
+function myNotifycation(){
+  chrome.notifications.create("mynotifycations",{
+    type:"progress", //basic , image , list , progress
+    requireInteraction:true, //是否需要点击才关闭
+    iconUrl:'images/kule.png',
+    title:'请假审核提醒',
+    message:'小江同学提交了一个请假单，事由：参加学习培训，请假日期：2020-05-15', //type:basic
+    contextMessage:"人事系统消息",
+    eventTime:Date.now() - 5000000,
+    buttons:[{title:"不同意"},{title:'同意'}],
+    //items:[{title:'item标题',message:'item消息'},{title:'item标题2',message:'item消息2'}], //消息加多行消息；type:list
+    //imageUrl:'http://img.netbian.com/file/2019/1103/88a0c2293416705dd1df2a618169d9ba.jpg',//消息加图片；type:image
+    progress: 50 ,//消息加进度条；type:progress
+  })
+}
+//监听notifycation按钮的点击
+chrome.notifications.onButtonClicked.addListener(function(notificationId,buttonIndex){
+  console.log('点击了ID为：'+notificationId+' 的第 '+buttonIndex+' 个按钮');  
+  chrome.notifications.clear(notificationId, function(wasCleared){
+      console.log('是否关闭消息：'+wasCleared);
+    })
+});
+//监听alarms触发
+chrome.alarms.onAlarm.addListener(function(alarm){
+  console.log(alarm);
+  //定时器触发后，显示一个notifications
+  myNotifycation();
+});
 
 //监听扩展按钮被点击
 chrome.browserAction.onClicked.addListener(function(){
@@ -35,6 +64,18 @@ chrome.browserAction.onClicked.addListener(function(){
   }
   chrome.storage.local.set({kuleStatus:kuleStatus});
   toolUisetting();
+
+  //弹窗消息权限是否开启
+  chrome.notifications.getPermissionLevel(function(level){
+      if(level=='granted'){
+        myNotifycation();//显示一个消息框
+      }else{
+        console.log('消息弹窗权限为：'+level+' ，如果已经禁止，可以重新安装扩展来打开');        
+      }
+  });
+
+  //1分钟后触发alarms事件，chrome.alarms.onAlarm.addListener(function callback)监听会触发
+  chrome.alarms.create("test",{delayInMinutes:1});
 });
 
 //监听存储值发生变化
